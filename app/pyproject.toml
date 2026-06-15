@@ -8,7 +8,7 @@ authors = [
     { name = "JH", email = "jhmsg45@gmail.com" },
     { name = "GuiihMaurinho", email = "guilhermemaurinhoborgesalves@gmail.com" },
     { name = "MariaRiguetti", email = "mariavitoriariguetti358@gmail.com" },
-    { name = "AnaaCarolr", email = "you@gmail.com" }
+    { name = "AnaaCarolr", email = "carolr9com@gmail.com" }
 ]
 dependencies = [
     "flet>=0.85.1"

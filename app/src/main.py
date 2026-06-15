@@ -1,6 +1,8 @@
-import flet as ft
-from flet import Colors
+import asyncio
 
+import flet as ft
+from flet import Colors, View, CrossAxisAlignment, ListView, Card, Container, Text
+from rotas import rastrear_encomenda
 
 def main(page: ft.Page):
     page.title = "App FlashLog"
@@ -8,72 +10,219 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.padding = 0
 
-    # Configuração do tamanho da janela
     page.window.width = 373
     page.window.height = 695
 
-    # Conteúdo principal da página
-    content_column = ft.Column(
-        [
-            ft.Image(
-                src="../src/assets/img.png",
-                width=150,
-                margin=ft.Margin.only(bottom=100)
-            ),
-            ft.Image(
-                src="../src/assets/van.png",
-                border_radius=ft.BorderRadius.all(50),
-                width=250,
-                margin=ft.Margin.only(bottom=20)
+    list_view = ListView(width=373, height=250)
 
-            ),
-
-
-            ft.Text(
-                "Bem-vindo",
-                size=40,
-                weight=ft.FontWeight.BOLD,
-                color=ft.Colors.WHITE,
-            ),
-            ft.Text(
-                "Uma interface moderna e fluida construída inteiramente com Flet.",
-                size=16,
-                color=ft.Colors.WHITE70,
-                text_align=ft.TextAlign.CENTER,
-            ),
-            ft.Container(height=20),  # Espaçador
-            ft.Button(
-                "Começar Agora",
-                on_click=lambda _: print("Botão clicado!"),
-                style=ft.ButtonStyle(
-                    color=ft.Colors.BLUE_800,
-                    bgcolor=ft.Colors.WHITE,
-                    shape=ft.RoundedRectangleBorder(radius=10),
-                    padding=20,
-                ),
-            ),
-        ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        spacing=15,
+    input_code = ft.TextField(
+        label=Text("Digite o Codigo de Rastreio", color=Colors.WHITE),
+        prefix_icon=ft.Icon(ft.Icons.SEARCH, color=Colors.WHITE),
+        color=Colors.WHITE,
+        on_submit=lambda _: pesquisar_encomenda(),
     )
 
-    # Corrigido: Uso do ft.DecorationImage para carregar o fundo
-    main_layout = ft.Container(
-        content=ft.Container(
-            content=content_column,
-            alignment=ft.Alignment(0, 0),
-            padding=20,
-        ),
-        image=ft.DecorationImage(
-            src="../src/assets/tela4.png",
+    def navegar(route):
+        asyncio.create_task(
+            page.push_route(route)
+        )
 
-        ),
-        expand=True,
-    )
+    def definir_status(status):
+        if status == "POSTADO":
+            return ft.Icons.CHECK
+        elif status == "TRANSITO":
+            return ft.Icons.LOCAL_SHIPPING_OUTLINED
+        elif status == "CAMINHO":
+            return ft.Icons.MARKUNREAD_MAILBOX_OUTLINED
+        elif status == "ENTREGUE":
+            return ft.Icons.MARK_EMAIL_READ_OUTLINED
 
-    page.add(main_layout)
+    def definir_texto(status1):
+        if status1 == "POSTADO":
+            return "Sua Encomenda Foi Postada"
+        elif status1 == "TRANSITO":
+            return "Sua Encomenda esta em Transito"
+        elif status1 == "CAMINHO":
+            return "Sua Encomenda esta a Caminho"
+        elif status1 == "ENTREGUE":
+            return "Sua Encomenda Foi Entregue"
+
+    def definir_cor(status_m):
+        if status_m == "ENTRADA":
+            return ft.Colors.RED_300
+        else:
+            return ft.Colors.BLUE_300
+
+    def pesquisar_encomenda():
+        code = input_code.value
+        tem_erro = False
+        if code:
+            input_code.error = None
+        else:
+            tem_erro = True
+            input_code.error = "Campo Invalido"
+
+        if not tem_erro:
+            rastrear_encomenda(code)
 
 
-# Corrigido: Atualizado de ft.app para ft.run() para remover o aviso do terminal
+    def montar_lista_encomenda():
+        list_view.controls.clear()
+        for i in rastrear_encomenda(input_code.value):
+            list_view.controls.append(
+                ft.ListTile(
+                    bgcolor=ft.Colors.BLUE_50,
+                    leading=ft.Icon(definir_status(i['encomenda']['status_encomenda'])),
+                    title=ft.Text(f"{definir_texto(i['encomenda']['status_encomenda'])}"),
+                    subtitle=ft.Text(f"{i['movimentacao']['status_movimentacao']}", color=definir_cor(i['movimentacao']['status_movimentacao']))
+                )
+            )
+
+
+    def route_change(e=None):
+        page.views.clear()
+
+        if page.route == "/":
+            page.views.append(
+                ft.View(
+                    route="/",
+                    padding=0,
+                    controls=[
+                        ft.Container(
+                            expand=True,
+                            image=ft.DecorationImage(src="../src/assets/tela4.png"),
+                            content=ft.Container(
+                                alignment=ft.Alignment(0, 0),
+                                padding=20,
+                                content=ft.Column(
+                                    [
+                                        ft.Image(
+                                            src="../src/assets/img.png",
+                                            width=150,
+                                            margin=ft.Margin.only(bottom=100)
+                                        ),
+                                        ft.Image(
+                                            src="../src/assets/van.png",
+                                            border_radius=ft.BorderRadius.all(50),
+                                            width=250,
+                                        ),
+                                        ft.Text(
+                                            "Bem-vindo",
+                                            size=35,
+                                            weight=ft.FontWeight.BOLD,
+                                            color=ft.Colors.WHITE_70
+                                        ),
+                                        ft.Text(
+                                            disabled=False,
+                                            text_align=ft.TextAlign.CENTER,
+                                            spans=[
+                                                ft.TextSpan(
+                                                    "FLASHLOG\n",
+                                                    style=ft.TextStyle(
+                                                        size=22,
+                                                        weight=ft.FontWeight.BOLD,
+                                                        color=ft.Colors.WHITE
+                                                    )
+                                                ),
+                                                ft.TextSpan(
+                                                    "Envio sem ",
+                                                    style=ft.TextStyle(
+                                                        size=16,
+                                                        weight=ft.FontWeight.BOLD,
+                                                        color=ft.Colors.WHITE
+                                                    )
+                                                ),
+                                                ft.TextSpan(
+                                                    "interrupções\n",
+                                                    style=ft.TextStyle(
+                                                        size=16,
+                                                        weight=ft.FontWeight.BOLD,
+                                                        color=ft.Colors.ORANGE_900)),
+                                                ft.TextSpan(
+                                                    "Envie com ",
+                                                    style=ft.TextStyle(
+                                                        size=16,
+                                                        weight=ft.FontWeight.W_100,
+                                                        color=ft.Colors.WHITE)),
+                                                ft.TextSpan(
+                                                    "FLASHLOG",
+                                                    style=ft.TextStyle(
+                                                        size=17,
+                                                        weight=ft.FontWeight.BOLD,
+                                                        color=ft.Colors.WHITE
+                                                    )
+                                                ),
+                                            ],
+                                        ),
+                                        ft.Container(height=20),
+                                        ft.Button(
+                                            ft.Text("ENTRAR", size=22, weight=ft.FontWeight.BOLD),
+                                            on_click=lambda _: navegar("/segunda_tela"),
+                                            margin=ft.Margin.only(bottom=180, left=9),
+                                            bgcolor="#17385B",
+                                            color=ft.Colors.WHITE,
+                                            width=190,
+                                            height=80,
+                                        ),
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                    spacing=15,
+                                )
+                            )
+                        )
+                    ]
+                )
+            )
+
+        elif page.route == "/segunda_tela":
+            montar_lista_encomenda()
+            page.views.append(
+                View(
+                    route="/segunda_tela",
+                    padding=0,
+                    controls=[
+                        ft.Container(
+                            expand=True,
+                            image=ft.DecorationImage(src="../src/assets/flamingo_2.png", ),
+                            content=ft.Container(
+                                alignment=ft.Alignment.CENTER,
+                                padding=20,
+                                content=ft.Column(
+                                    spacing=5,
+                                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                    controls=[
+                                        ft.Image(
+                                            src="../src/assets/img.png",
+                                            width=150,
+                                            # margin=ft.Margin.only(bottom=100)
+                                        ),
+                                        input_code,
+                                        list_view
+                                    ]
+                                )
+                            )
+                        ),
+                    ]
+                )
+            )
+
+            page.update()
+
+    async def view_pop(e):
+        if e.view is not None:
+            page.views.remove(e.view)
+            top_view = page.views[-1]
+            await page.push_route(top_view.route)
+
+
+    page.on_route_change = route_change
+    page.on_view_pop = view_pop
+
+    page.update()
+    route_change()
+
+
+
+
 ft.run(main)
