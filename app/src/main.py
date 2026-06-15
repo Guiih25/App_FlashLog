@@ -27,54 +27,22 @@ def main(page: ft.Page):
             page.push_route(route)
         )
 
-    def definir_status(status):
-        if status == "POSTADO":
-            return ft.Icons.CHECK
-        elif status == "TRANSITO":
-            return ft.Icons.LOCAL_SHIPPING_OUTLINED
-        elif status == "CAMINHO":
-            return ft.Icons.MARKUNREAD_MAILBOX_OUTLINED
-        elif status == "ENTREGUE":
-            return ft.Icons.MARK_EMAIL_READ_OUTLINED
-
-    def definir_texto(status1):
-        if status1 == "POSTADO":
-            return "Sua Encomenda Foi Postada"
-        elif status1 == "TRANSITO":
-            return "Sua Encomenda esta em Transito"
-        elif status1 == "CAMINHO":
-            return "Sua Encomenda esta a Caminho"
-        elif status1 == "ENTREGUE":
-            return "Sua Encomenda Foi Entregue"
-
-    def definir_cor(status_m):
-        if status_m == "ENTRADA":
-            return ft.Colors.RED_300
-        else:
-            return ft.Colors.BLUE_300
-
-    def pesquisar_encomenda():
-        code = input_code.value
-        tem_erro = False
-        if code:
-            input_code.error = None
-        else:
-            tem_erro = True
-            input_code.error = "Campo Invalido"
-
-        if not tem_erro:
-            rastrear_encomenda(code)
-
-
     def montar_lista_encomenda():
         list_view.controls.clear()
         for i in rastrear_encomenda(input_code.value):
             list_view.controls.append(
-                ft.ListTile(
-                    bgcolor=ft.Colors.BLUE_50,
-                    leading=ft.Icon(definir_status(i['encomenda']['status_encomenda'])),
-                    title=ft.Text(f"{definir_texto(i['encomenda']['status_encomenda'])}"),
-                    subtitle=ft.Text(f"{i['movimentacao']['status_movimentacao']}", color=definir_cor(i['movimentacao']['status_movimentacao']))
+                ft.Card(
+                    bgcolor="#0A4682",
+                    content = ft.Container(
+                        ft.Row(
+                            margin=ft.Margin.all(5),
+                            spacing=12,
+                            controls=[
+
+                            ]
+                        )
+                    )
+
                 )
             )
 
